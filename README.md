@@ -1,36 +1,46 @@
-![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg)
+# Self-calibrating charge amplifier
 
-# Tiny Tapeout Analog Project Template
+Tiny Tapeout sky130 analog project — a charge amplifier that measures its own
+scale, instead of asking you to trust it.
 
-- [Read the documentation for project](docs/info.md)
+![layout](docs/tt_um_wzw_qamp.png)
 
-## What is Tiny Tapeout?
+| | |
+| --- | --- |
+| top module | `tt_um_wzw_qamp` |
+| tiles | 1×2 — 161.00 × 225.76 µm |
+| analog pins | 2 — `ua[0]` VOUT, `ua[1]` SENSE (summing node — do not drive) |
+| digital pins | 13 in, 0 out |
+| supply | 1.8 V `VDPWR` only |
 
-Tiny Tapeout is an educational project that aims to make it easier and cheaper than ever to get your digital designs manufactured on a real chip.
+## How it works
 
-To learn more and get started, visit https://tinytapeout.com.
+A single-ended OTA integrates charge onto a 500 fF feedback cap. Two knobs on
+the same summing node let the chip calibrate itself:
 
-## Analog projects
+- **`qdac`** — a 6-bit split-capacitor DAC drops a *known* charge onto the
+  virtual ground, `Q = C_sel · ΔV`. ΔV is selectable, so one array does two
+  jobs: a 1.00 V step is the coarse calibration, a 204 mV step is the fine
+  offset trim. Both are taps on one resistor divider off the supply, so ΔV is
+  a **ratio**, not a rail — which is what makes the charge actually known.
+- **`leakdac`** — a subthreshold current source giving 1 nA / 100 pA / 10 pA,
+  for emulating sensor leakage.
 
-For specifications and instructions, see the [analog specs page](https://tinytapeout.com/specs/analog/).
+`qdac` pins the absolute charge scale; `leakdac` then rides on that calibrated
+scale to give an absolute current. The output is the whole ramp on `ua[0]` —
+there's no on-chip comparator — so the measurement protocol lives in MCU
+firmware and can change after tapeout.
 
-## Enable GitHub actions to build the results page
+See [docs/info.md](docs/info.md) for the pinout and test procedure.
 
-- [Enabling GitHub Pages](https://tinytapeout.com/faq/#my-github-action-is-failing-on-the-pages-part)
+## Status
 
-## Resources
+Physical verification is clean: TT precheck 23/23, magic DRC 0 (full rule set),
+KLayout FEOL/BEOL/offgrid 0, antenna 0, netgen LVS matches on every cell and
+the top. 
 
-- [FAQ](https://tinytapeout.com/faq/)
-- [Digital design lessons](https://tinytapeout.com/digital_design/)
-- [Learn how semiconductors work](https://tinytapeout.com/siliwiz/)
-- [Join the community](https://tinytapeout.com/discord)
-
-## What next?
-
-- [Submit your design to the next shuttle](https://app.tinytapeout.com/).
-- Edit [this README](README.md) and explain your design, how it works, and how to test it.
-- Share your project on your social network of choice:
-  - LinkedIn [#tinytapeout](https://www.linkedin.com/search/results/content/?keywords=%23tinytapeout) [@TinyTapeout](https://www.linkedin.com/company/100708654/)
-  - Mastodon [#tinytapeout](https://chaos.social/tags/tinytapeout) [@matthewvenn](https://chaos.social/@matthewvenn)
-  - X (formerly Twitter) [#tinytapeout](https://twitter.com/hashtag/tinytapeout) [@tinytapeout](https://twitter.com/tinytapeout)
-  - Bluesky [@tinytapeout.com](https://bsky.app/profile/tinytapeout.com)
+Circuit simulation: the bias core starts at all five corners, the amplifier has
+66 dB gain and 75° phase margin, and the measurement noise floor is 0.025 pA
+against a 10 pA smallest range. The charge DAC delivers 211.3 fC full scale at
+DNL 0.095 LSB, and that figure moves by 0.002 % across five corners and
+−40…125 °C.
