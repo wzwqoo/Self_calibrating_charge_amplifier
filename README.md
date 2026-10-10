@@ -35,12 +35,22 @@ See [docs/info.md](docs/info.md) for the pinout and test procedure.
 
 ## Status
 
-Physical verification is clean: TT precheck 23/23, magic DRC 0 (full rule set),
-KLayout FEOL/BEOL/offgrid 0, antenna 0, netgen LVS matches on every cell and
-the top. 
+Physical verification is clean: TT precheck passes every check, magic DRC 0
+(full rule set), KLayout FEOL/BEOL/offgrid 0, antenna 0, netgen LVS matches on
+every cell and the top, and no floating metal at the top level.
 
 Circuit simulation: the bias core starts at all five corners, the amplifier has
-66 dB gain and 75° phase margin, and the measurement noise floor is 0.025 pA
+66 dB gain and 73° phase margin, and the measurement noise floor is 0.025 pA
 against a 10 pA smallest range. The charge DAC delivers 211.3 fC full scale at
 DNL 0.095 LSB, and that figure moves by 0.002 % across five corners and
 −40…125 °C.
+
+Post-layout: the whole die was simulated on its own parasitic extraction. The
+first layout's charge DAC came out non-monotonic, because driven plate wiring
+coupled onto the two nodes that float during a fire. In the current layout
+those nodes are shielded, the bridge and LSB capacitors are turned so their top
+plates face the bridge node, and the capacitors are sized against the
+extraction rather than the drawing. The extracted DAC now measures **DNL 0.080 /
+INL 0.047 LSB** over all 64 codes, and the whole extracted tile is monotonic
+with a worst DNL of 0.17 LSB. Extraction also caught four ground shields left
+floating, which DRC and LVS had both passed; they are tied to VGND now.

@@ -27,7 +27,7 @@ transfer is 0.34 *and* the bandwidth collapses to 4.6 kHz. **Use a piezo MEMS
 element, not a film.**
 
 **Knob 1 — a known charge (`qdac`).** A 6-bit split-capacitor DAC (a 3-bit
-MSB array of 27 fF units, a 3-bit LSB array behind a 27 fF bridge cap) has
+MSB array of ≈27 fF units, a 3-bit LSB array behind a 28 fF bridge cap) has
 its top plates on the virtual ground. Each bottom plate switches between a
 stepped node `st` and VSS, so a code drops `Q = C_sel · ΔV` onto the summing
 node — electrically indistinguishable from a real sensor event.
@@ -52,8 +52,11 @@ tap moves it by **0.002 %**.
 
 Full-scale is **211.3 fC** measured (213.8 fF of drawn array × `vcal` 1.0018 V
 = 214.2 fC computed, 98.7 % of it) ≈ 0.42 V out, LSB ≈ 6.6 mV; the
-trim step spans ≈ 43 fC ≈ 86 mV out, LSB ≈ 1.3 mV. Simulated DNL over all 64
-codes is **0.095 LSB**, INL 0.060, monotonic.
+trim step spans ≈ 43 fC ≈ 86 mV out, LSB ≈ 1.3 mV. On the parasitic
+extraction of this layout, DNL over all 64 codes is **0.080 LSB**, INL 0.047,
+monotonic. The bridge and LSB capacitors are sized against that extraction, so
+the drawn array is deliberately not exactly binary. The whole extracted tile is
+monotonic at every major code transition, with a worst DNL of 0.17 LSB.
 
 `st` settles in 1.5–4.6 µs across five corners and −40…125 °C — the divider tap
 is a 222 kΩ node with no local decoupling, so it droops during the fire and
